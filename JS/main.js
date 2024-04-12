@@ -9,7 +9,7 @@ class Car {
     this.posicionFinal = posicionFinal;
     this.contrario = contrario;
     this.dx = 0; // Velocidad horizontal constante
-    this.dy = 2; // Velocidad vertical (0 para que no se mueva verticalmente)
+    this.dy = 5; // Velocidad vertical (0 para que no se mueva verticalmente)
     this.crossedTrafficLight = false; // Indica si el carro ya cruzó el semáforo
     this.stopped = false; // Indica si el carro está detenido
   }
@@ -17,9 +17,14 @@ class Car {
   createCar() {
     const car = document.createElement("div");
     car.classList.add("car");
+    if(this.contrario){
+      car.style.top = "750px";
+    }
+    if(!this.contrario){
+      car.style.top = "0px";
+    }
+   
     car.style.left = "10px";
-    console.log(this.posicionFinal);
-    car.style.top = "0px";
     this.carretera.appendChild(car);
     return car;
   }
@@ -149,6 +154,45 @@ class RoadSimulator {
         }
       });
     }
+    if (!this.contrario) {
+      this.carsArray.forEach((car, index) => {
+        const carPosition = car.car.getBoundingClientRect();
+        const carHeight = carPosition.top + carPosition.height;
+
+        const shouldStop =
+          (colorRojo &&
+            carHeight >= trafficLightHeight &&
+            !car.crossedTrafficLight) ||
+          (index > 0 && this.shouldStop(car, index));
+
+        if (shouldStop) {
+          car.stop();
+        } else {
+          if (car.stopped && index > 0 && !this.carsArray[index - 1].stopped) {
+            car.stopped = false;
+          }
+          car.move();
+          if (carHeight >= trafficLightHeight) {
+            car.crossedTrafficLight = true;
+          }
+        }
+        //cuenta el numero de carros que pasa cunado el semaforo esta en verde
+        if (
+          colorVerde &&
+          car.crossedTrafficLight &&
+          carHeight > 460 &&
+          carHeight < 462
+        ) {
+          this.contador++;
+          console.log("contaodr: ", carHeight);
+          console.log("co: ", this.contador);
+        }
+        // el contador se reinicia
+        if (colorRojo && carHeight > 465) {
+          this.contador = 0;
+        }
+      });
+    }
   }
   //funcion para que el carro se detenga
   shouldStop(car, currentIndex) {
@@ -183,7 +227,7 @@ carretera1.style.left = "400px";
 carretera1.style.width = "50px";
 const circle = document.getElementById("circle");
 
-const roadSimulator = new RoadSimulator(carretera1, circle, 10, 0, true);
+const roadSimulator = new RoadSimulator(carretera1, circle, 0, 0, true);
 const trafficLight = new TrafficLight(circle);
 
 const carretera2 = document.getElementById("carretera2");
@@ -202,5 +246,5 @@ circle2.style.position = "relative";
 
 carretera2.appendChild(circle2);
 
-const roadSimulator2 = new RoadSimulator(carretera2, circle2, 10, 0, false);
+const roadSimulator2 = new RoadSimulator(carretera2, circle2, 800, 0, false);
 const trafficLight2 = new TrafficLight(circle2);
