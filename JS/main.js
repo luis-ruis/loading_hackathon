@@ -1,35 +1,46 @@
-const gameArea = document.getElementById("gameArea");
-let carroCount = 0;
-
-function createCarro() {
-  const carro = document.createElement("div");
-  carro.classList.add("carro");
-  carro.style.left =  "100px";
-  carro.style.top = "0px";
-  gameArea.appendChild(carro);
-  carroCount++;
+const carretera = document.getElementById("carretera");
+let carCount = 0;
+let carsArray = []; // Array para almacenar las pelotas
+function createCar() {
+  const car = document.createElement("div");
+  car.classList.add("car");
+  car.style.left = "10px";
+  car.style.top = "0px";
+  carretera.appendChild(car);
+  carCount++;
+  carsArray.push(car); // Agregar el carro al array
 }
 
-function moveCarro() {
-  const carro = document.querySelectorAll(".carro");
-  carro.forEach((carro) => {
+let prevTop = 0; // Variable para almacenar la posición top del carro anterior
+let numero=400;
+let posicion;
+function moveCars() {
+  const balls = document.querySelectorAll(".car");
+  carsArray.forEach((car, index) => {
     const dx = 0; // Velocidad horizontal constante
     const dy = 2; // Velocidad vertical (0 para que no se mueva verticalmente)
-    let left = parseFloat(carro.style.left) + dx;
-    let top = parseFloat(carro.style.top) + dy;
+    let left = parseFloat(car.style.left) + dx;
+    let top = parseFloat(car.style.top) + dy;
 
-    // Eliminar las pelotas que se salen del área de juego
-
-    if (top > gameArea.offsetWidth) {
-        carro.remove();
-        carroCount--;
+    // Eliminar el carro en la carretera
+    if (top > carretera.offsetHeight) {
+      car.remove();
+      carCount--;
+      carsArray.splice(index, 1); // Eliminar el carro del array
     } else {
-      if (miVariable) {
-        carro.style.left = left + "px";
-        carro.style.top = top + "px";
+      //carros que avanzan antes del rojo
+      if(!miVariable&&car.style.top < numero+"px"){
+        car.style.left = left + "px";
+        car.style.top = top + "px";
       }
-      if(carro.style.top>200+"px"){
-        carro.style.top = top + "px";
+      // carros que se detienen en rojo
+      if (miVariable) {
+        car.style.left = left + "px";
+        car.style.top = top + "px";
+      }
+      // carros que abanzan despues del semaforo
+      if (car.style.top > 400 + "px") {// defina la pocion de semaforo
+        car.style.top = top + "px";
       }
     }
   });
@@ -39,21 +50,20 @@ function randomInterval(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-function addRandomCarro() {
-  createCarro();
-  setTimeout(addRandomCarro, randomInterval(700, 2000)); // Añadir una nueva pelota en un intervalo aleatorio entre 500ms y 2000ms
+function addRandomCar() {
+  createCar();
+  setTimeout(addRandomCar, randomInterval(700, 2000)); // Añadir un nuevo carro en un intervalo aleatorio entre 500ms y 2000ms
 }
 
-// Comenzar el juego agregando la primera pelota
-addRandomCarro();
+// Comenzar agrregando el primer carro
+addRandomCar();
 
-// Mover las pelotas cada 50 milisegundos
-setInterval(moveCarro, 50);
+// Mover el carro cada 50 milisegundos
+setInterval(moveCars, 50);
 
 //---------------------------------------------------------------------------
 // Función para cambiar la variable a verdadero después de 5 segundos
 let miVariable = false;
-
 // Función para alternar el valor de la variable entre falso y verdadero
 function alternarVariable() {
   miVariable = !miVariable; // Alternar el valor entre falso y verdadero
