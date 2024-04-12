@@ -10,7 +10,7 @@ class Car {
         this.crossedTrafficLight = false; // Indica si el carro ya cruzó el semáforo
         this.stopped = false; // Indica si el carro está detenido
     }
-
+    //se crea el carro
     createCar() {
         const car = document.createElement("div");
         car.classList.add("car");
@@ -23,7 +23,7 @@ class Car {
     stop() {
         this.stopped = true;
     }
-
+    //funcion para mover las cordenadas del carro
     move() {
         if (!this.stopped) {
             let left = parseFloat(this.car.style.left) + this.dx;
@@ -42,7 +42,7 @@ class Car {
         return false;
     }
 }
-
+//Clase para el semaforo
 class TrafficLight {
     constructor(circle) {
         this.circle = circle;
@@ -52,12 +52,12 @@ class TrafficLight {
         colorVerde = true;
         colorRojo = false;
     }
-
+// funcion para cambio de luces
     alternateVariable() {
         this.miVariable = !this.miVariable;
         console.log("El valor de la variable es:", this.miVariable);
     }
-
+//funcion para cambiar el color
     changeColor() {
         if (this.circle.style.backgroundColor === 'green') {
             this.circle.style.backgroundColor = 'red';
@@ -79,13 +79,14 @@ class RoadSimulator {
         this.addRandomCar();
         setInterval(() => this.moveCars(), 50);
     }
-
+    //funcion para agregar carros en la calle
     addRandomCar() {
         const car = new Car(this.carretera);
         this.carsArray.push(car);
-        setTimeout(() => this.addRandomCar(), this.randomInterval(700, 2000));
+         // Añadir un nuevo carro en un intervalo aleatorio entre 800ms y 4000ms
+        setTimeout(() => this.addRandomCar(), this.randomInterval(800, 4000));
     }
-
+//funcion para mover el carro en la calle
     moveCars() {
         const trafficLightPosition = this.circle.getBoundingClientRect();
         const trafficLightHeight = trafficLightPosition.top + trafficLightPosition.height;
@@ -109,7 +110,7 @@ class RoadSimulator {
             }
         });
     }
-
+    //funcion para que el carro se detenga
     shouldStop(car, currentIndex) {
         const distanceThreshold = 10; // Umbral de distancia entre carros
         for (let i = currentIndex - 1; i >= 0; i--) {
@@ -122,7 +123,7 @@ class RoadSimulator {
             }
         }
     }
-
+    //funcion para calcular la distancia entre un carro del otro
     calculateDistance(car1, car2) {
         const car1Position = car1.car.getBoundingClientRect();
         const car2Position = car2.car.getBoundingClientRect();
