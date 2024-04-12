@@ -1,89 +1,139 @@
+var colorRojo = false
+var colorVerde = false
+
 class Car {
-  constructor(carretera) {
-      this.carretera = carretera;
-      this.car = this.createCar();
-      this.dx = 0; // Velocidad horizontal constante
-      this.dy = 2; // Velocidad vertical (0 para que no se mueva verticalmente)
-  }
+    constructor(carretera) {
+        this.carretera = carretera;
+        this.car = this.createCar();
+        this.dx = 0; // Velocidad horizontal constante
+        this.dy = 2; // Velocidad vertical (0 para que no se mueva verticalmente)
+        this.crossedTrafficLight = false; // Indica si el carro ya cruzó el semáforo
+        this.stopped = false; // Indica si el carro está detenido
+    }
 
-  createCar() {
-      const car = document.createElement("div");
-      car.classList.add("car");
-      car.style.left = "10px";
-      car.style.top = "0px";
-      this.carretera.appendChild(car);
-      return car;
-  }
+    createCar() {
+        const car = document.createElement("div");
+        car.classList.add("car");
+        car.style.left = "10px";
+        car.style.top = "0px";
+        this.carretera.appendChild(car);
+        return car;
+    }
 
-  move() {
-      let left = parseFloat(this.car.style.left) + this.dx;
-      let top = parseFloat(this.car.style.top) + this.dy;
+    stop() {
+        this.stopped = true;
+    }
 
-      if (top > this.carretera.offsetHeight) {
-          this.car.remove();
-          return false;
-      } else {
-          this.car.style.left = left + "px";
-          this.car.style.top = top + "px";
-          console.log("El valor de la variable es:", this.car.style.top);
-          return true;
-      }
-  }
+    move() {
+        if (!this.stopped) {
+            let left = parseFloat(this.car.style.left) + this.dx;
+            let top = parseFloat(this.car.style.top) + this.dy;
+
+            if (top > this.carretera.offsetHeight) {
+                this.car.remove();
+                return false;
+            } else {
+                this.car.style.left = left + "px";
+                this.car.style.top = top + "px";
+                console.log("El valor de la variable es:", this.car.style.top);
+                return true;
+            }
+        }
+        return false;
+    }
 }
-//clase que crea el semaforo y controla los colores 
+
 class TrafficLight {
-  constructor(circle) {
-      this.circle = circle;
-      this.miVariable = false;
-      setInterval(() => this.alternateVariable(), 3000);
-      setInterval(() => this.changeColor(), 3000);
-  }
+    constructor(circle) {
+        this.circle = circle;
+        this.miVariable = false;
+        setInterval(() => this.alternateVariable(), 3000);
+        setInterval(() => this.changeColor(), 3000);
+        colorVerde = true;
+        colorRojo = false;
+    }
 
-  alternateVariable() {
-      this.miVariable = !this.miVariable;
-      console.log("El valor de la variable es:", this.miVariable);
-  }
+    alternateVariable() {
+        this.miVariable = !this.miVariable;
+        console.log("El valor de la variable es:", this.miVariable);
+    }
 
-  changeColor() {
-      if (this.circle.style.backgroundColor === 'green') {
-          this.circle.style.backgroundColor = 'red';
-      } else {
-          this.circle.style.backgroundColor = 'green';
-      }
-  }
+    changeColor() {
+        if (this.circle.style.backgroundColor === 'green') {
+            this.circle.style.backgroundColor = 'red';
+            colorVerde = false;
+            colorRojo = true;
+        } else {
+            this.circle.style.backgroundColor = 'green';
+            colorVerde = true;
+            colorRojo = false;
+        }
+    }
 }
 
 class RoadSimulator {
-  constructor(carretera, circle) {
-      this.carretera = carretera;
-      this.circle = circle;
-      this.carsArray = [];
-      this.addRandomCar();
-      setInterval(() => this.moveCars(), 50);
-  }
+    constructor(carretera, circle) {
+        this.carretera = carretera;
+        this.circle = circle;
+        this.carsArray = [];
+        this.addRandomCar();
+        setInterval(() => this.moveCars(), 50);
+    }
 
-  addRandomCar() {
-      const car = new Car(this.carretera);
-      this.carsArray.push(car);
-      setTimeout(() => this.addRandomCar(), this.randomInterval(700, 2000));
-  }
+    addRandomCar() {
+        const car = new Car(this.carretera);
+        this.carsArray.push(car);
+        setTimeout(() => this.addRandomCar(), this.randomInterval(700, 2000));
+    }
 
-  moveCars() {
-      this.carsArray.forEach((car, index) => {
-          /*if (!this.miVariable && car.car.style.top < 400 + "px") {
-              if (!car.move()) {
-                  this.carsArray.splice(index, 1);
-              }else{
+    moveCars() {
+        const trafficLightPosition = this.circle.getBoundingClientRect();
+        const trafficLightHeight = trafficLightPosition.top + trafficLightPosition.height;
+
+        this.carsArray.forEach((car, index) => {
+            const carPosition = car.car.getBoundingClientRect();
+            const carHeight = carPosition.top + carPosition.height;
+
+            const shouldStop = (colorRojo && carHeight >= trafficLightHeight && !car.crossedTrafficLight) || (index > 0 && this.shouldStop(car, index));
+
+            if (shouldStop) {
+                car.stop();
+            } else {
+                if (car.stopped && index > 0 && !this.carsArray[index - 1].stopped) {
+                    car.stopped = false;
+                }
                 car.move();
-              }
-          }*/
-          car.move();
-      });
-  }
+                if (carHeight >= trafficLightHeight) {
+                    car.crossedTrafficLight = true;
+                }
+            }
+        });
+    }
 
-  randomInterval(min, max) {
-      return Math.random() * (max - min) + min;
-  }
+    shouldStop(car, currentIndex) {
+        const distanceThreshold = 10; // Umbral de distancia entre carros
+        for (let i = currentIndex - 1; i >= 0; i--) {
+            const previousCar = this.carsArray[i];
+            const distance = this.calculateDistance(car, previousCar);
+            if (distance < distanceThreshold) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    calculateDistance(car1, car2) {
+        const car1Position = car1.car.getBoundingClientRect();
+        const car2Position = car2.car.getBoundingClientRect();
+        const car1Bottom = car1Position.top + car1Position.height;
+        const car2Top = car2Position.top;
+        return Math.abs(car1Bottom - car2Top);
+    }
+
+    randomInterval(min, max) {
+        return Math.random() * (max - min) + min;
+    }
 }
 
 const carretera = document.getElementById("carretera");
