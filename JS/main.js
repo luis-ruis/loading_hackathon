@@ -2,9 +2,12 @@ var colorRojo = false;
 var colorVerde = false;
 
 class Car {
-  constructor(carretera) {
+  constructor(carretera, posicionInicial, posicionFinal, contrario) {
     this.carretera = carretera;
     this.car = this.createCar();
+    this.posicionInicial = posicionInicial;
+    this.posicionFinal = posicionFinal;
+    this.contrario = contrario;
     this.dx = 0; // Velocidad horizontal constante
     this.dy = 2; // Velocidad vertical (0 para que no se mueva verticalmente)
     this.crossedTrafficLight = false; // Indica si el carro ya cruzó el semáforo
@@ -15,7 +18,8 @@ class Car {
     const car = document.createElement("div");
     car.classList.add("car");
     car.style.left = "10px";
-    car.style.top = "0px";
+    console.log(this.posicionFinal);
+    car.style.top = "750px";
     this.carretera.appendChild(car);
     return car;
   }
@@ -27,14 +31,22 @@ class Car {
   move() {
     if (!this.stopped) {
       let left = parseFloat(this.car.style.left) + this.dx;
-      let top = parseFloat(this.car.style.top) + this.dy;
 
       if (top > this.carretera.offsetHeight) {
         this.car.remove();
         return false;
       } else {
-        this.car.style.left = left + "px";
-        this.car.style.top = top + "px";
+        if (this.contrario) {
+          let top = parseFloat(this.car.style.top) + this.dy;
+          this.car.style.left = left + "px";
+          this.car.style.top = top + "px";
+        }
+        if (!this.contrario) {
+          let top = parseFloat(this.car.style.top) - this.dy;
+          this.car.style.left = left + "px";
+          this.car.style.top = top + "px";
+        }
+
         return true;
       }
     }
@@ -70,17 +82,25 @@ class TrafficLight {
 }
 
 class RoadSimulator {
-  constructor(carretera, circle) {
+  constructor(carretera, circle, posicionInicial, posicionFinal, contrario) {
     this.carretera = carretera;
     this.circle = circle;
-    this.contador=0;
+    this.contador = 0;
+    this.posicionInicial = posicionInicial;
+    this.posicionFinal = posicionFinal;
+    this.contrario = contrario;
     this.carsArray = [];
     this.addRandomCar();
     setInterval(() => this.moveCars(), 50);
   }
   //funcion para agregar carros en la calle
   addRandomCar() {
-    const car = new Car(this.carretera);
+    const car = new Car(
+      this.carretera,
+      this.posicionInicial,
+      this.posicionFinal,
+      this.contrario
+    );
     this.carsArray.push(car);
     // Añadir un nuevo carro en un intervalo aleatorio entre 800ms y 4000ms
     setTimeout(() => this.addRandomCar(), this.randomInterval(800, 4000));
@@ -113,14 +133,19 @@ class RoadSimulator {
         }
       }
       //cuenta el numero de carros que pasa cunado el semaforo esta en verde
-      if(colorVerde&&car.crossedTrafficLight&&carHeight>460&& carHeight<462){
+      if (
+        colorVerde &&
+        car.crossedTrafficLight &&
+        carHeight > 460 &&
+        carHeight < 462
+      ) {
         this.contador++;
-        console.log("contaodr: ",carHeight);
-        console.log("co: ",this.contador);
+        console.log("contaodr: ", carHeight);
+        console.log("co: ", this.contador);
       }
-      // el contador se reinicia 
-      if(colorRojo&&carHeight>465){
-        this.contador=0;
+      // el contador se reinicia
+      if (colorRojo && carHeight > 465) {
+        this.contador = 0;
       }
     });
   }
@@ -151,17 +176,11 @@ class RoadSimulator {
   }
 }
 
-/*const carretera = document.getElementById("carretera");
+const carretera = document.getElementById("carretera");
+carretera.style.height = "800px";
+carretera.style.left = "400px";
+carretera.style.width = "50px";
 const circle = document.getElementById("circle");
 
-const roadSimulator = new RoadSimulator(carretera, circle);
-const trafficLight = new TrafficLight(circle);*/
-
-
-const carretera1 = document.getElementById("carretera");
-carretera1.style.left="600px";
-const circle1 = document.getElementById("circle");
-circle1.style.left="660px"
-
-const roadSimulator1 = new RoadSimulator(carretera1, circle1);
-const trafficLight1 = new TrafficLight(circle1);
+const roadSimulator = new RoadSimulator(carretera, circle, 10, 0, false);
+const trafficLight = new TrafficLight(circle);
